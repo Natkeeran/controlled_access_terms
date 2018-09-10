@@ -11,6 +11,7 @@ use Drupal\Tests\BrowserTestBase;
  */
 class FieldConfigurationTest extends BrowserTestBase {
   protected $profile = 'standard';
+  protected $strictConfigSchema = FALSE;
 
   /**
    * Modules to enable.
@@ -53,7 +54,7 @@ class FieldConfigurationTest extends BrowserTestBase {
       'label' => 'Typed Person',
       'description' => 'Some help.',
       'required' => '0',
-      'settings[handler_settings][target_bundles][person]' => 'checked',
+      'settings[handler_settings][target_bundles][tags]' => 'tags',
       'settings[rel_types]' => 'relators:anl|Analyst (anl)',
     ], t('Save settings'));
 
