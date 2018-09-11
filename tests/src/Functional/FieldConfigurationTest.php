@@ -31,14 +31,9 @@ class FieldConfigurationTest extends BrowserTestBase {
   public function setUp() {
     parent::setUp();
     $this->drupalLogin($this->rootUser);
-  }
 
-  /**
-   * Test the field configuration form.
-   */
-  public function testFieldConfiguration() {
-
-    $this->createContentType(['type' => 'islandora_object', 'name' => 'islandora_object']);
+    // Setup content type with required field
+    $newType = $this->createContentType(['type' => 'islandora_object', 'name' => 'islandora_object']);
     drupal_flush_all_caches();
     $this->drupalGet('admin/structure/types/manage/islandora_object/fields/add-field');
     $this->submitForm([
@@ -51,15 +46,55 @@ class FieldConfigurationTest extends BrowserTestBase {
       'settings[target_type]' => 'taxonomy_term',
     ], t('Save field settings'));
 
+    $relators = "relators:anl|Analyst (anl)" . PHP_EOL;
+    $relators .= "relators:anm|Animator (anm)";
+
     $this->submitForm([
       'label' => 'Typed Person',
       'description' => 'Some help.',
       'required' => '0',
       'settings[handler_settings][target_bundles][person]' => 'person',
-      'settings[rel_types]' => 'relators:anl|Analyst (anl)',
+      'settings[rel_types]' => $relators,
     ], t('Save settings'));
 
-    $this->assertSession()->pageTextContains('Saved Typed Person configuration');
+    // Setup taxonomy
+    $this->drupalGet('admin/structure/taxonomy/manage/person/add');
+    $this->submitForm([
+      'name[0][value]' => 'Mohandas Karamchand Gandhi',
+      'field_person_name_authorities[0][source]' => 'other',
+      'field_person_name_authorities[0][uri]' => 'https://www.wikidata.org/wiki/Q1001',
+      'field_person_name_authorities[0][title]' => 'Wikidata',
+      'field_person_preferred_name[0][given]' => 'Mahatma Gandhi',
+    ], t('Save'));
   }
 
+  /**
+   * Test that the typed_relation field has been added to the content type.
+   */
+  public function testFieldConfiguration() {
+    $this->drupalGet('admin/structure/types/manage/islandora_object/fields');
+    $this->assertSession()->pageTextContains('field_typed_person');
+  }
+
+  /**
+   * Test that the a person term has been added to person taxonomy.
+   */
+  public function testAddPersonTerm() {
+    $this->drupalGet('admin/structure/taxonomy/manage/person/overview');
+    $this->assertSession()->pageTextContains('Mohandas Karamchand Gandhi');
+  }
+
+  /**
+   * Test that one can create a node with person relation and target.
+   */
+  public function testNodeWithPersonTypedRelation() {
+    $this->drupalGet('node/add/islandora_object');
+    $this->submitForm([
+      'title[0][value]' => 'test_person_field',
+      'field_typed_person[0][rel_type]' => 'relators:anl',
+      'field_typed_person[0][target_id]' => 'Mohandas Karamchand Gandhi',
+    ], t('Save'));
+
+    $this->assertSession()->pageTextContains('test_person_field has been created.');
+  }
 }
