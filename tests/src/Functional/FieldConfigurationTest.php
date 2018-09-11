@@ -22,6 +22,7 @@ class FieldConfigurationTest extends BrowserTestBase {
     'field_ui',
     'node',
     'controlled_access_terms',
+    'controlled_access_terms_default_configuration',
   ];
 
   /**
@@ -54,7 +55,7 @@ class FieldConfigurationTest extends BrowserTestBase {
       'label' => 'Typed Person',
       'description' => 'Some help.',
       'required' => '0',
-      'settings[handler_settings][target_bundles][tags]' => 'tags',
+      'settings[handler_settings][target_bundles][person]' => 'person',
       'settings[rel_types]' => 'relators:anl|Analyst (anl)',
     ], t('Save settings'));
 
